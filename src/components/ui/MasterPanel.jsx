@@ -2,6 +2,10 @@ import { useEffect, useCallback, useMemo, memo, useState } from 'react';
 import { MasterPanelUI } from '.';
 import { useToggle, useAutoFetch, useFetch } from '../../hooks';
 import { useAppContext } from '../../context';
+import AccessTimeIcon from '@mui/icons-material/AccessTime';
+import TimelineIcon from '@mui/icons-material/Timeline';
+import AddIcon from '@mui/icons-material/Add';
+import RemoveIcon from '@mui/icons-material/Remove';
 
 import {
   Box,
@@ -23,8 +27,14 @@ import {
 
 const MasterPanel = memo(() => {
   const { isActive: isAutoFetch, toggle: toggleAutoFetch } = useToggle(true);
-  const { setVehiclesList, filterStatus, setFilterStatus, limit, setLimit } =
-    useAppContext();
+  const {
+    setVehiclesList,
+    filterStatus,
+    setFilterStatus,
+    limit,
+    setLimit,
+    countByStatus,
+  } = useAppContext();
 
   const wsUrl = `${WEB_SOCKET_URL}`;
   const vehiclesApiUrl = useMemo(
@@ -91,41 +101,66 @@ const MasterPanel = memo(() => {
         </Stack>
         <Divider sx={dividerSx} />
         {!isAutoFetch && (
-          <Stack
-            direction='row'
-            spacing={1}
-            sx={{
-              mb: 2,
-              justifyContent: 'space-between',
-              alignItems: 'center',
-            }}
-          >
-            <Box
+          <>
+            <Stack
+              direction='row'
+              spacing={1}
               sx={{
-                display: 'flex',
+                mb: 2,
+                justifyContent: 'space-between',
                 alignItems: 'center',
-                border: '1px solid #767879',
               }}
             >
-              <Button onClick={() => setLimit((l) => Math.max(0, l - 1))}>
-                -
+              <Box
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  border: '1px solid #76c3ea',
+                  padding: '5px',
+                }}
+              >
+                <Button
+                  variant={'outlined'}
+                  size='small'
+                  onClick={() => setLimit((l) => Math.max(0, l - 1))}
+                >
+                  <RemoveIcon />
+                </Button>
+                <Typography sx={{ mx: 2 }}> Limit = {limit} </Typography>
+                <Button
+                  variant={'outlined'}
+                  size='small'
+                  onClick={() => setLimit((l) => l + 1)}
+                >
+                  <AddIcon />
+                </Button>
+              </Box>
+              <Button
+                variant='outlined'
+                size='small'
+                onClick={refresh}
+                disabled={autoFetchLoading}
+                sx={{ textTransform: 'none' }}
+              >
+                {autoFetchLoading ? 'Refreshing...' : 'Refresh'}
               </Button>
-              <Typography>Limit = {limit} </Typography>
-              <Button onClick={() => setLimit((l) => l + 1)}>+</Button>
-            </Box>
-            <Button
-              variant='outlined'
-              size='small'
-              onClick={refresh}
-              disabled={autoFetchLoading}
-              sx={{ textTransform: 'none' }}
-            >
-              {autoFetchLoading ? 'Refreshing...' : 'Refresh'}
-            </Button>
-          </Stack>
+            </Stack>
+            <Divider sx={dividerSx} />
+          </>
         )}
-        <Divider sx={dividerSx} />
-        <Typography variant='h5'>Filter by Status</Typography>
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            padding: '5px',
+          }}
+        >
+          <Typography variant='h5'>
+            <TimelineIcon sx={{ m: 1 }} /> Filter by Status
+          </Typography>
+        </Box>
         <ToggleButtonGroup
           color='primary'
           value={filterStatus}
@@ -136,24 +171,43 @@ const MasterPanel = memo(() => {
           aria-label='StatusFilter'
         >
           <ToggleButton value={VEHICLE_STATUS.ALL.apiValue}>
-            {VEHICLE_STATUS.ALL.text}
+            {VEHICLE_STATUS.ALL.text} ({countByStatus[VEHICLE_STATUS.ALL.key]})
           </ToggleButton>
           <ToggleButton value={VEHICLE_STATUS.EN_ROUTE.apiValue}>
-            {VEHICLE_STATUS.EN_ROUTE.text}
+            {VEHICLE_STATUS.EN_ROUTE.text} (
+            {countByStatus[VEHICLE_STATUS.EN_ROUTE.key]})
           </ToggleButton>
           <ToggleButton value={VEHICLE_STATUS.INACTIVE.apiValue}>
-            {VEHICLE_STATUS.INACTIVE.text}
+            {VEHICLE_STATUS.INACTIVE.text} (
+            {countByStatus[VEHICLE_STATUS.INACTIVE.key]})
           </ToggleButton>
           <ToggleButton value={VEHICLE_STATUS.DELIVERED.apiValue}>
-            {VEHICLE_STATUS.DELIVERED.text}
+            {VEHICLE_STATUS.DELIVERED.text} (
+            {countByStatus[VEHICLE_STATUS.DELIVERED.key]})
           </ToggleButton>
         </ToggleButtonGroup>
         <Divider sx={{ ...dividerSx, mt: 1 }} />
-        <Typography variant='h5'>
-          Fleet Statistics (ALL){' '}
-          <Button onClick={refreshStats}> Refresh </Button>
-        </Typography>
-
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            padding: '5px',
+          }}
+        >
+          <Typography variant='h5'>
+            <AccessTimeIcon sx={{ m: 1 }} />
+            Fleet Statistics (ALL)
+          </Typography>
+          <Button
+            variant='outlined'
+            size='small'
+            sx={{ textTransform: 'none' }}
+            onClick={refreshStats}
+          >
+            Refresh Stats
+          </Button>
+        </Box>
         <Box>
           <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1 }}>
             {STATS_KEYS.map((stats, i) => (
@@ -194,7 +248,7 @@ const MasterPanel = memo(() => {
               }}
             >
               <Typography variant='caption'>
-                Statistics data last update at :{' '}
+                Statistics data last update at :
                 {new Date(statsData.data.timestamp).toLocaleString([], {})}
               </Typography>
             </Box>

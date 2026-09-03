@@ -32,8 +32,26 @@ const AppContent = memo(() => {
             alignItems: 'center',
           }}
         >
-          <LocalShippingIcon color='primary' />
-          <Typography variant='h5'>React Fleet Tracking App</Typography>
+          <LocalShippingIcon color='primary' sx={{ fontSize: '6rem' }} />
+          <Typography
+            variant='h4'
+            sx={{
+              fontWeight: 'bold',
+              lineHeight: 1.1,
+            }}
+          >
+            Fleet Tracking Dashboard{' '}
+            <Typography
+              variant='subtitle1'
+              sx={{
+                color: 'text.secondary',
+                mt: 0.5,
+                fontWeight: 'medium',
+              }}
+            >
+              Real Time vehicle monitoring - LogiNext Case Study{' '}
+            </Typography>
+          </Typography>
         </Stack>
       </Box>
       <Box sx={{ flex: 1, px: 1, pb: 1, overflow: 'hidden' }}>
